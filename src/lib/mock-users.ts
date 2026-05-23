@@ -22,7 +22,7 @@ export const MOCK_ADMINS: DBAdmin[] = [
     name: "Sarah Chen",
     email: "superadmin@imari.com",
     passwordHash:
-      "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+      "$2b$10$kDHE2VCRh3tecb7buB7QduSXZEHyHXbMdpWkpHnhyc08sBuebOTJu",
     role: "SUPER_ADMIN",
     mfaEnabled: true,
     mfaTotpSecret: "JBSWY3DPEHPK3PXP",
@@ -32,7 +32,7 @@ export const MOCK_ADMINS: DBAdmin[] = [
     name: "James Okafor",
     email: "financial@imari.com",
     passwordHash:
-      "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+      "$2b$10$kDHE2VCRh3tecb7buB7QduSXZEHyHXbMdpWkpHnhyc08sBuebOTJu",
     role: "FINANCIAL_ADMIN",
     mfaEnabled: true,
     mfaTotpSecret: "JBSWY3DPEHPK3PXP",
@@ -42,7 +42,7 @@ export const MOCK_ADMINS: DBAdmin[] = [
     name: "Amara Diallo",
     email: "support@imari.com",
     passwordHash:
-      "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+      "$2b$10$kDHE2VCRh3tecb7buB7QduSXZEHyHXbMdpWkpHnhyc08sBuebOTJu",
     role: "SUPPORT_ADMIN",
     mfaEnabled: false,
     mfaTotpSecret: null,

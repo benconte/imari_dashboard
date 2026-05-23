@@ -2,51 +2,60 @@ import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import type { JWT } from "next-auth/jwt"
+import { AdminRole } from "@/types/next-auth"
 
-// ── Public paths that require NO authentication ───────────────────────────────
-const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"]
+// ── Paths that bypass auth entirely ──────────────────────────────────────────
+const PUBLIC_PATHS = [
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/invite",          // /invite/[token] — set password after invite
+]
 
-// ── Role → allowed path prefixes ─────────────────────────────────────────────
-const ROLE_PATHS: Record<string, string[]> = {
-  SUPER_ADMIN: ["/dashboard/super_admin", "/dashboard"],
-  FINANCIAL_ADMIN: ["/dashboard/financial_admin", "/dashboard"],
-  SUPPORT_ADMIN: ["/dashboard/support_admin", "/dashboard"],
+// ── Each role's allowed path prefixes inside (admin) ─────────────────────────
+const ROLE_ALLOWED_PATHS: Record<AdminRole, string[]> = {
+  SUPER_ADMIN:     ["/super-admin"],
+  FINANCIAL_ADMIN: ["/financial-admin"],
+  SUPPORT_ADMIN:   ["/support-admin"],
 }
+
+// All protected prefixes combined (used to detect admin routes)
+const ALL_ADMIN_PREFIXES = ["/super-admin", "/financial-admin", "/support-admin"]
 
 export default withAuth(
   function middleware(req: NextRequest & { nextauth: { token: JWT | null } }) {
     const { pathname } = req.nextUrl
-    const token = req.nextauth.token
+    const token = req.nextauth?.token ?? (req as unknown as { nextauth: { token: JWT | null } }).nextauth?.token
 
-    // If logged in but MFA required and not yet verified, redirect to /mfa
+    // ── 1. MFA gate ────────────────────────────────────────────────────────────
+    // If the admin has MFA enabled but hasn't verified it yet in this session,
+    // send them to /mfa regardless of where they're going (except public paths).
+    const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
     if (
+      !isPublic &&
       token &&
       token.mfaEnabled &&
       !token.mfaVerified &&
-      !pathname.startsWith("/mfa") &&
-      !PUBLIC_PATHS.some((p) => pathname.startsWith(p))
+      pathname !== "/mfa"
     ) {
       const url = req.nextUrl.clone()
       url.pathname = "/mfa"
-      url.searchParams.set("userId", token.id as string)
+      url.searchParams.set("adminId", String(token.id))
       return NextResponse.redirect(url)
     }
 
-    // Role-based path guard
-    if (token && pathname.startsWith("/dashboard")) {
-      const role = token.role as string
-      const allowed = ROLE_PATHS[role] ?? []
+    // ── 2. Role-based path guard ───────────────────────────────────────────────
+    // Prevent cross-role access, e.g. a Financial Admin hitting /super-admin/*.
+    const isAdminRoute = ALL_ADMIN_PREFIXES.some((p) => pathname.startsWith(p))
+    if (token && isAdminRoute) {
+      const role = token.role as AdminRole
+      const allowed = ROLE_ALLOWED_PATHS[role] ?? []
       const hasAccess = allowed.some((p) => pathname.startsWith(p))
 
       if (!hasAccess) {
         const url = req.nextUrl.clone()
-        // Redirect to the correct dashboard root for this role
-        url.pathname =
-          role === "admin"
-            ? "/dashboard/admin"
-            : role === "manager"
-              ? "/dashboard/manager"
-              : "/dashboard"
+        url.pathname = "/unauthorized"
+        url.searchParams.set("from", pathname)
         return NextResponse.redirect(url)
       }
     }
@@ -55,10 +64,13 @@ export default withAuth(
   },
   {
     callbacks: {
-      // Let withAuth decide — it redirects to /login if no token
-      authorized: ({ token, req }) => {
+      authorized({ token, req }) {
         const { pathname } = req.nextUrl
+        // Always allow public paths through — no token required
         if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true
+        // /mfa page is accessible to partially-authed users (token exists, MFA not done)
+        if (pathname === "/mfa") return !!token
+        // Everything else requires a valid token
         return !!token
       },
     },
@@ -67,7 +79,6 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.svg).*)",
-  ],
+  
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.svg$|.*\\.png$).*)"],
 }

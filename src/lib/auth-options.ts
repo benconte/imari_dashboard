@@ -2,10 +2,9 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
-import { getAdminByEmail } from "./mock-users"
+import { getAdminByEmail, getAdminById } from "@/lib/mock-users"
 import { AdminRole } from "@/types/next-auth"
 
-// Role → dashboard home path
 export const ROLE_HOME: Record<AdminRole, string> = {
   SUPER_ADMIN:     "/super-admin/overview",
   FINANCIAL_ADMIN: "/financial-admin/overview",
@@ -14,39 +13,38 @@ export const ROLE_HOME: Record<AdminRole, string> = {
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
-
   pages: {
     signIn: "/login",
-    error: "/login",
+    error:  "/login",
   },
 
   providers: [
-    // ── Google OAuth ──────────────P─────────────────────────────────
-    // Only allow Google sign-in for pre-existing admin accounts.
-    // After OAuth we look up the user in the DB to get their role.
+    // ── Google OAuth ──────────────────────────────────────────────────────────
+    // Only pre-existing admins can sign in via Google.
+    // Any Google account not already in the DB is rejected.
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientId:     process.env.GOOGLE_CLIENT_ID     ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
       profile(profile) {
-        // Profile is augmented in the jwt callback below after DB lookup
         return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
-          role: "SUPPORT_ADMIN" as AdminRole, // temporary — overridden in jwt
-          mfaEnabled: false,
+          id:          profile.sub,
+          name:        profile.name,
+          email:       profile.email,
+          image:       profile.picture,
+          role:        "SUPPORT_ADMIN" as AdminRole, // overridden in signIn callback
+          mfaEnabled:  false,
           mfaVerified: false,
         }
       },
     }),
 
-    // ── Email + Password ───────────────────────────────────────────
+    // ── Email + Password ───────────────────────────────────────────────────────
+    // Role is NEVER submitted by the client — it is always read from the DB.
     CredentialsProvider({
-      id: "credentials",
+      id:   "credentials",
       name: "Email",
       credentials: {
-        email:    { label: "Email",    type: "email" },
+        email:    { label: "Email",    type: "email"    },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -59,19 +57,21 @@ export const authOptions: NextAuthOptions = {
         if (!valid) return null
 
         return {
-          id:         admin.id,
-          name:       admin.name,
-          email:      admin.email,
-          role:       admin.role,
-          mfaEnabled: admin.mfaEnabled,
-          mfaVerified: false, // MFA not yet verified at this step
+          id:          admin.id,
+          name:        admin.name,
+          email:       admin.email,
+          role:        admin.role,        // always from DB
+          mfaEnabled:  admin.mfaEnabled,
+          mfaVerified: false,
         }
       },
     }),
 
-    // ── MFA second-factor step ─────────────────────────────────────
+    // ── MFA second factor ──────────────────────────────────────────────────────
+    // Called after credentials succeed when mfaEnabled === true.
+    // Issues a new JWT with mfaVerified: true.
     CredentialsProvider({
-      id: "mfa",
+      id:   "mfa",
       name: "MFA",
       credentials: {
         adminId: { label: "Admin ID", type: "text" },
@@ -80,27 +80,20 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.adminId || !credentials.code) return null
 
-        const { getAdminById } = await import("@/lib/mock-users")
         const admin = await getAdminById(credentials.adminId)
-        if (!admin || !admin.mfaTotpSecret) return null
+        if (!admin || !admin.mfaEnabled || !admin.mfaTotpSecret) return null
 
-        // ── Swap this block for real TOTP verification ─────────────
+        // TODO: replace with real TOTP once otplib is installed
         // import { authenticator } from "otplib"
-        // const valid = authenticator.verify({
-        //   token: credentials.code,
-        //   secret: admin.mfaTotpSecret,
-        // })
-        // if (!valid) return null
-        // ───────────────────────────────────────────────────────────
-        // DEMO: any code "123456" is accepted
+        // if (!authenticator.verify({ token: credentials.code, secret: admin.mfaTotpSecret })) return null
         if (credentials.code !== "123456") return null
 
         return {
-          id:         admin.id,
-          name:       admin.name,
-          email:      admin.email,
-          role:       admin.role,
-          mfaEnabled: admin.mfaEnabled,
+          id:          admin.id,
+          name:        admin.name,
+          email:       admin.email,
+          role:        admin.role,
+          mfaEnabled:  admin.mfaEnabled,
           mfaVerified: true,
         }
       },
@@ -108,11 +101,9 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    // For Google OAuth: look up the admin by email to get their real role
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         const admin = await getAdminByEmail(user.email ?? "")
-        // Reject Google sign-in if email is not a registered admin
         if (!admin) return "/login?error=NotAnAdmin"
         user.id          = admin.id
         user.role        = admin.role

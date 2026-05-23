@@ -2,30 +2,31 @@
 
 import { useState, useTransition } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-
-import {  AdminRole } from "@/types/next-auth"
 import AuthBrandPanel from "@/components/auth/AuthPanelBrand"
-
-const ROLES: { value:  AdminRole; label: string }[] = [
-  { value: "SUPER_ADMIN", label: "Super Admin" },
-  { value: "FINANCIAL_ADMIN", label: "Financial Admin" },
-  { value: "SUPPORT_ADMIN", label: "Support Admin" },
-]
+import { AdminRole } from "@/types/next-auth"
+import { ROLE_HOME } from "@/lib/auth-options"
 
 export default function LoginPage() {
-  const router = useRouter()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl  = searchParams.get("callbackUrl")
+  const errorParam   = searchParams.get("error")
+
   const [isPending, startTransition] = useTransition()
-
-  const [role, setRole] = useState<AdminRole>("SUPPORT_ADMIN")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail]           = useState("")
+  const [password, setPassword]     = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [remember, setRemember] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError]           = useState<string | null>(
+    errorParam === "NotAnAdmin"
+      ? "This Google account is not associated with an admin account."
+      : errorParam
+        ? "Authentication failed. Please try again."
+        : null
+  )
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
@@ -33,69 +34,63 @@ export default function LoginPage() {
       const res = await signIn("credentials", {
         email,
         password,
-        role,
         redirect: false,
       })
 
       if (res?.error) {
-        setError("Invalid email, password, or role. Please try again.")
+        // Use a generic message — never reveal whether the email exists
+        setError("Invalid email or password.")
         return
       }
 
-      // If the user has MFA enabled, redirect to the MFA page
-      // We pass the userId via query so the MFA page can complete auth
+      // Read the session to get role (set by DB in authorize()) and MFA status
       const { getSession } = await import("next-auth/react")
       const session = await getSession()
 
-      if (session?.user.mfaEnabled && !session.user.mfaVerified) {
-        router.push(`/mfa?userId=${session.user.id}`)
-      } else {
-        router.push(getDashboardPath(role))
+      if (!session) {
+        setError("Session could not be established. Please try again.")
+        return
       }
+
+      // If MFA is enabled and not yet verified, go to the MFA step.
+      // IMPORTANT: mfaEnabled/verified come from the JWT session.
+      // If timing causes them to be stale, middleware will still enforce the MFA gate.
+      if (session.user.mfaEnabled && !session.user.mfaVerified) {
+        router.push(`/mfa?adminId=${session.user.id}`)
+        return
+      }
+
+      // Otherwise go to role's home, or to the page they originally tried to visit
+      const destination = callbackUrl ?? ROLE_HOME[session.user.role as AdminRole]
+      router.push(destination)
     })
   }
 
   return (
     <div className="min-h-screen grid lg:grid-cols-[1fr_46%]">
-      {/* ── Left: Form ─────────────────────────────────────────── */}
+
+      {/* ── Left: Form ───────────────────────────────────────────────────── */}
       <div className="flex items-center justify-center bg-white px-6 py-12 sm:px-12">
         <div className="w-full max-w-md space-y-8">
 
           {/* Mobile logo */}
           <div className="flex items-center gap-2 lg:hidden">
-            <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8">
-              <circle cx="18" cy="18" r="16" stroke="#6366F1" strokeWidth="3.5" strokeDasharray="70 30" strokeLinecap="round"/>
-            </svg>
+            <ImariLogo />
             <span className="font-semibold text-gray-800">Imari</span>
           </div>
 
-          {/* Role selector */}
+          {/* Heading */}
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-3 tracking-wide uppercase">
-              Sign in as
+            <h1 className="text-2xl font-bold text-gray-900">Admin sign in</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Access is restricted to authorised personnel only.
             </p>
-            <div className="flex rounded-xl border border-gray-200 p-1 bg-gray-50 gap-1">
-              {ROLES.map((r) => (
-                <button
-                  key={r.value}
-                  type="button"
-                  onClick={() => { setRole(r.value); setError(null) }}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                    role === r.value
-                      ? "bg-white text-indigo-600 shadow-sm border border-gray-200"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Google sign-in */}
           <button
             type="button"
-            onClick={() => signIn("google", { callbackUrl: getDashboardPath(role) })}
+            onClick={() => signIn("google", { callbackUrl: callbackUrl ?? "/" })}
             className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
             <GoogleIcon />
@@ -108,14 +103,13 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-3 text-gray-400">
-                Or sign in with email
-              </span>
+              <span className="bg-white px-3 text-gray-400">Or sign in with email</span>
             </div>
           </div>
 
-          {/* Form */}
+          {/* Credentials form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -128,10 +122,10 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="you@imari.com"
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 pr-11 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                   <EnvelopeIcon />
                 </span>
               </div>
@@ -154,6 +148,7 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
@@ -162,29 +157,28 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember me + Forgot password */}
+            {/* Remember + Forgot */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
                   className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                 />
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
               >
-                Forgot Password?
+                Forgot password?
               </Link>
             </div>
 
             {/* Error */}
             {error && (
-              <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
-                {error}
+              <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
+                <AlertIcon />
+                <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
 
@@ -194,40 +188,43 @@ export default function LoginPage() {
               disabled={isPending}
               className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 transition-colors"
             >
-              {isPending ? "Signing in…" : "Sign In"}
+              {isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <SpinnerIcon /> Signing in…
+                </span>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
 
-          {/* Register link */}
-          <p className="text-center text-sm text-gray-500">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="font-medium text-indigo-600 hover:text-indigo-700"
-            >
-              Create one
-            </Link>
+          {/* No "Create account" link — admin accounts are invite-only */}
+          <p className="text-center text-xs text-gray-400">
+            Don&apos;t have access?{" "}
+            <span className="text-gray-500">Contact your Super Admin.</span>
           </p>
+
         </div>
       </div>
 
-      {/* ── Right: Brand panel ─────────────────────────────────── */}
-      <AuthBrandPanel role={role} />
+      {/* ── Right: Brand panel ────────────────────────────────────────────── */}
+      <AuthBrandPanel page="login" />
 
     </div>
   )
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── SVG icons ──────────────────────────────────────────────────────────────────
 
-function getDashboardPath(role: AdminRole) {
-  if (role === "SUPER_ADMIN") return "/super_admin/overview"
-  if (role === "FINANCIAL_ADMIN") return "/financial_admin/overview"
-  if (role === "SUPPORT_ADMIN") return "/support_admin/overview"
-  return "/overview"
+function ImariLogo() {
+  return (
+    <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8">
+      <circle cx="18" cy="18" r="16" stroke="#6366F1" strokeWidth="3.5"
+        strokeDasharray="70 30" strokeLinecap="round" />
+      <circle cx="18" cy="18" r="8" fill="#6366F1" opacity="0.2" />
+    </svg>
+  )
 }
-
-// ── SVG icons ─────────────────────────────────────────────────────────────────
 
 function GoogleIcon() {
   return (
@@ -260,6 +257,23 @@ function EyeOffIcon() {
   return (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+    </svg>
+  )
+}
+
+function AlertIcon() {
+  return (
+    <svg className="h-4 w-4 mt-0.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+    </svg>
+  )
+}
+
+function SpinnerIcon() {
+  return (
+    <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
   )
 }
