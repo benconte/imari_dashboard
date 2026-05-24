@@ -9,7 +9,7 @@ const PUBLIC_PATHS = [
   "/login",
   "/forgot-password",
   "/reset-password",
-  "/invite",          // /invite/[token] — set password after invite
+  "/invite",        
 ]
 
 // ── Each role's allowed path prefixes inside (admin) ─────────────────────────
@@ -27,10 +27,19 @@ export default withAuth(
     const { pathname } = req.nextUrl
     const token = req.nextauth?.token ?? (req as unknown as { nextauth: { token: JWT | null } }).nextauth?.token
 
+    const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
+
+    
+    if (!isPublic && !token) {
+      const url = req.nextUrl.clone()
+      url.pathname = "/login"
+      url.searchParams.set("callbackUrl", pathname + req.nextUrl.search)
+      return NextResponse.redirect(url)
+    }
+
     // ── 1. MFA gate ────────────────────────────────────────────────────────────
     // If the admin has MFA enabled but hasn't verified it yet in this session,
     // send them to /mfa regardless of where they're going (except public paths).
-    const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
     if (
       !isPublic &&
       token &&

@@ -1,33 +1,41 @@
 import type { Metadata } from "next";
-
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-options";
+import Sidebar from "@/components/layout/Sidebar";
+import Topbar from "@/components/layout/Topbar";
+import type { AdminRole } from "@/types/next-auth";
 
 export const metadata: Metadata = {
-  title: "Admin",
-  description: "Admin area",
+  title: "Imari Admin",
+  description: "Imari Admin Dashboard",
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
+  const role      = (session?.user?.role ?? "SUPPORT_ADMIN") as AdminRole;
+  const userName  = session?.user?.name  ?? "Admin";
+  const userEmail = session?.user?.email ?? "";
+  const userImage = (session?.user as { image?: string })?.image ?? null;
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <AdminSidebar />
+    <div className="min-h-screen bg-gray-50/50">
+      <Sidebar role={role} userName={userName} />
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-zinc-200 dark:bg-zinc-950/80 dark:border-zinc-800">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              Admin Dashboard
-            </div>
-          </div>
-        </header>
-
-        <main className="p-4 lg:p-8">{children}</main>
+      <div className="lg:pl-[250px] flex flex-col min-h-screen">
+        <Topbar
+          userName={userName}
+          userEmail={userEmail}
+          userImage={userImage}
+        />
+        <main className="flex-1 p-6 lg:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );
 }
-
