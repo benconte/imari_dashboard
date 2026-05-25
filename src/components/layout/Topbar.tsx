@@ -5,54 +5,52 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 
-// ── Page Title Map ────────────────────────────────────────────────────────────
+// ── Page title map ────────────────────────────────────────────────────────────
 
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
-  overview:           { title: "Overview",          subtitle: "Dashboard summary & key metrics"        },
-  users:              { title: "Users",              subtitle: "Manage platform users"                  },
-  "kyc-queue":        { title: "KYC Queue",          subtitle: "Pending identity verification reviews"  },
-  "admin-management": { title: "Admin Management",  subtitle: "Manage admin accounts & permissions"    },
-  roles:              { title: "Roles & Permissions",subtitle: "Configure role access"                  },
-  transactions:       { title: "Transactions",       subtitle: "Transaction monitoring & ledger"        },
-  pending:            { title: "Pending",            subtitle: "Transactions awaiting processing"       },
-  failed:             { title: "Failed",             subtitle: "Failed transactions & recovery queue"   },
-  "fraud-security":   { title: "Fraud & Security",  subtitle: "Risk monitoring & audit trail"          },
-  alerts:             { title: "Fraud Alerts",       subtitle: "Active fraud alerts & flags"            },
-  "audit-log":        { title: "Audit Log",          subtitle: "Full security audit trail"              },
-  "platform-analytics":{ title: "Platform Analytics",subtitle: "Growth, engagement & retention data"   },
-  "wallet-stats":     { title: "Wallet Stats",       subtitle: "Wallet distribution & activity"        },
-  "savings-stats":    { title: "Savings Stats",      subtitle: "Savings performance & trends"          },
-  "subscription-stats":{ title: "Subscription Stats",subtitle: "Subscription intelligence"             },
-  notifications:      { title: "Notifications",      subtitle: "Broadcast notification management"     },
-  templates:          { title: "Templates",          subtitle: "Notification template editor"          },
-  "system-config":    { title: "System Config",      subtitle: "Platform settings & integrations"      },
-  categories:         { title: "Categories",         subtitle: "Expense category rules"                },
-  integrations:       { title: "Integrations",       subtitle: "External API connection status"        },
-  wallets:            { title: "Wallets",            subtitle: "Wallet operations & funding"           },
-  funding:            { title: "Funding Activity",   subtitle: "Deposit & funding analysis"            },
-  "virtual-cards":    { title: "Virtual Cards",      subtitle: "Card status, limits & activity"        },
-  "budgets-spending": { title: "Budgets & Spending", subtitle: "Platform-wide spending analytics"      },
-  "saving-vaults":    { title: "Savings Vaults",     subtitle: "Vault activity & savings performance"  },
-  goals:              { title: "Goals",              subtitle: "Goal completion & milestone tracking"   },
-  subscriptions:      { title: "Subscriptions",      subtitle: "Subscription intelligence dashboard"   },
-  "cash-flows":       { title: "Cash Flow",          subtitle: "Inflow, outflow & liquidity"           },
-  compliance:         { title: "Compliance",         subtitle: "Compliance monitoring & reports"       },
-  reports:            { title: "Reports",            subtitle: "Financial report history"              },
-  tickets:            { title: "Tickets",            subtitle: "Support ticket management"            },
-  escalated:          { title: "Escalated",          subtitle: "High-priority escalated issues"        },
-  disputes:           { title: "Disputes",           subtitle: "Transaction dispute resolution"        },
-  announcements:      { title: "Announcements",      subtitle: "User-facing support announcements"     },
-  settings:           { title: "Settings",           subtitle: "Account preferences & security"       },
-  profile:            { title: "Profile",            subtitle: "Your admin profile"                    },
-  security:           { title: "Security",           subtitle: "Password & 2FA settings"              },
+  overview:             { title: "Overview",           subtitle: "Dashboard summary & key metrics"       },
+  users:                { title: "Users",              subtitle: "Manage platform users"                 },
+  "kyc-queue":          { title: "KYC Queue",          subtitle: "Pending identity verification reviews" },
+  "admin-management":   { title: "Admin Management",   subtitle: "Manage admin accounts & permissions"   },
+  roles:                { title: "Roles & Permissions", subtitle: "Configure role access"                },
+  transactions:         { title: "Transactions",        subtitle: "Transaction monitoring & ledger"      },
+  pending:              { title: "Pending",             subtitle: "Transactions awaiting processing"     },
+  failed:               { title: "Failed",              subtitle: "Failed transactions & recovery queue" },
+  "fraud-security":     { title: "Fraud & Security",   subtitle: "Risk monitoring & audit trail"        },
+  alerts:               { title: "Fraud Alerts",        subtitle: "Active fraud alerts & flags"          },
+  "audit-log":          { title: "Audit Log",           subtitle: "Full security audit trail"            },
+  "platform-analytics": { title: "Platform Analytics", subtitle: "Growth, engagement & retention"       },
+  "wallet-stats":       { title: "Wallet Stats",        subtitle: "Wallet distribution & activity"      },
+  "savings-stats":      { title: "Savings Stats",       subtitle: "Savings performance & trends"        },
+  "subscription-stats": { title: "Subscription Stats", subtitle: "Subscription intelligence"            },
+  notifications:        { title: "Notifications",       subtitle: "Broadcast notification management"   },
+  templates:            { title: "Templates",           subtitle: "Notification template editor"         },
+  "system-config":      { title: "System Config",       subtitle: "Platform settings & integrations"    },
+  categories:           { title: "Categories",          subtitle: "Expense category rules"              },
+  integrations:         { title: "Integrations",        subtitle: "External API connection status"      },
+  wallets:              { title: "Wallets",             subtitle: "Wallet operations & funding"         },
+  funding:              { title: "Funding Activity",    subtitle: "Deposit & funding analysis"          },
+  "virtual-cards":      { title: "Virtual Cards",       subtitle: "Card status, limits & activity"      },
+  "budgets-spending":   { title: "Budgets & Spending",  subtitle: "Platform-wide spending analytics"    },
+  "saving-vaults":      { title: "Savings Vaults",      subtitle: "Vault activity & savings performance"},
+  goals:                { title: "Goals",               subtitle: "Goal completion & milestones"        },
+  subscriptions:        { title: "Subscriptions",       subtitle: "Subscription intelligence dashboard" },
+  "cash-flows":         { title: "Cash Flow",           subtitle: "Inflow, outflow & liquidity"         },
+  compliance:           { title: "Compliance",          subtitle: "Compliance monitoring & reports"     },
+  reports:              { title: "Reports",             subtitle: "Financial report history"            },
+  tickets:              { title: "Tickets",             subtitle: "Support ticket management"           },
+  escalated:            { title: "Escalated",           subtitle: "High-priority escalated issues"      },
+  disputes:             { title: "Disputes",            subtitle: "Transaction dispute resolution"      },
+  announcements:        { title: "Announcements",       subtitle: "User-facing support announcements"   },
+  settings:             { title: "Settings",            subtitle: "Account preferences & security"      },
+  profile:              { title: "Profile",             subtitle: "Your admin profile"                  },
+  security:             { title: "Security",            subtitle: "Password & 2FA settings"             },
 };
 
-function getPageMeta(pathname: string): { title: string; subtitle: string } {
+function getPageMeta(pathname: string) {
   const segments = pathname.split("/").filter(Boolean);
-  // Walk segments from deepest to shallowest to find the most specific match
   for (let i = segments.length - 1; i >= 0; i--) {
     const seg = segments[i];
-    // Skip dynamic segments (UUIDs / IDs)
     if (/^[0-9a-f-]{8,}$/i.test(seg) || /^\d+$/.test(seg)) continue;
     if (PAGE_META[seg]) return PAGE_META[seg];
   }
@@ -61,6 +59,13 @@ function getPageMeta(pathname: string): { title: string; subtitle: string } {
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
+function HamburgerIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+  );
+}
 function SearchIcon() {
   return (
     <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -68,7 +73,6 @@ function SearchIcon() {
     </svg>
   );
 }
-
 function BellIcon() {
   return (
     <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -76,7 +80,6 @@ function BellIcon() {
     </svg>
   );
 }
-
 function ChevronDownIcon() {
   return (
     <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -84,7 +87,6 @@ function ChevronDownIcon() {
     </svg>
   );
 }
-
 function SignOutIcon() {
   return (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -92,7 +94,6 @@ function SignOutIcon() {
     </svg>
   );
 }
-
 function SettingsIcon() {
   return (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -102,16 +103,17 @@ function SettingsIcon() {
   );
 }
 
-// ── Topbar Component ──────────────────────────────────────────────────────────
+// ── Topbar ────────────────────────────────────────────────────────────────────
 
 interface TopbarProps {
   userName: string;
   userEmail: string;
   userImage?: string | null;
+  onMenuClick: () => void;
 }
 
-export default function Topbar({ userName, userEmail, userImage }: TopbarProps) {
-  const pathname  = usePathname();
+export default function Topbar({ userName, userEmail, userImage, onMenuClick }: TopbarProps) {
+  const pathname = usePathname();
   const { title, subtitle } = getPageMeta(pathname);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen]       = useState(false);
@@ -125,17 +127,26 @@ export default function Topbar({ userName, userEmail, userImage }: TopbarProps) 
 
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-gray-100">
-      <div className="flex items-center gap-4 px-6 h-[64px]">
+      <div className="flex items-center gap-3 px-4 sm:px-6 h-16">
 
-        {/* ── Page Title (left) ─────────────────────────────────────── */}
-        <div className="flex-none min-w-[180px]">
-          <h1 className="text-[17px] font-bold text-gray-900 leading-tight">{title}</h1>
-          <p className="text-[11px] text-gray-400 leading-tight mt-0.5">{subtitle}</p>
+        {/* ── Hamburger (mobile only) ───────────────────────────────── */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden flex-shrink-0 p-2 -ml-1 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+          aria-label="Open navigation"
+        >
+          <HamburgerIcon />
+        </button>
+
+        {/* ── Page title ────────────────────────────────────────────── */}
+        <div className="flex-none min-w-0">
+          <h1 className="text-[16px] sm:text-[17px] font-bold text-gray-900 leading-tight truncate">{title}</h1>
+          <p className="text-[11px] text-gray-400 leading-tight mt-0.5 hidden sm:block">{subtitle}</p>
         </div>
 
-        {/* ── Search (center) ───────────────────────────────────────── */}
+        {/* ── Search ────────────────────────────────────────────────── */}
         <div className="flex-1 flex justify-center">
-          <div className="relative w-full max-w-[380px]">
+          <div className="relative w-full max-w-[340px] hidden sm:block">
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
               <SearchIcon />
             </div>
@@ -147,17 +158,17 @@ export default function Topbar({ userName, userEmail, userImage }: TopbarProps) 
           </div>
         </div>
 
-        {/* ── Right Actions ─────────────────────────────────────────── */}
-        <div className="flex-none flex items-center gap-2">
+        {/* ── Right actions ─────────────────────────────────────────── */}
+        <div className="flex-none flex items-center gap-1.5 sm:gap-2">
 
-          {/* Notification Bell */}
+          {/* Notification bell */}
           <div className="relative">
             <button
               onClick={() => { setNotifOpen((v) => !v); setDropdownOpen(false); }}
               className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Notifications"
             >
               <BellIcon />
-              {/* Red dot badge */}
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
             </button>
 
@@ -171,9 +182,9 @@ export default function Topbar({ userName, userEmail, userImage }: TopbarProps) 
                   </div>
                   <div className="divide-y divide-gray-50">
                     {[
-                      { title: "New KYC submission", time: "2m ago", dot: "bg-indigo-500" },
-                      { title: "High-risk transaction flagged", time: "15m ago", dot: "bg-red-500" },
-                      { title: "Daily report ready", time: "1h ago", dot: "bg-green-500" },
+                      { title: "New KYC submission",           time: "2m ago",  dot: "bg-indigo-500" },
+                      { title: "High-risk transaction flagged", time: "15m ago", dot: "bg-red-500"    },
+                      { title: "Daily report ready",            time: "1h ago",  dot: "bg-green-500"  },
                     ].map((n, i) => (
                       <div key={i} className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer">
                         <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${n.dot}`} />
@@ -194,13 +205,12 @@ export default function Topbar({ userName, userEmail, userImage }: TopbarProps) 
             )}
           </div>
 
-          {/* User dropdown */}
+          {/* User menu */}
           <div className="relative">
             <button
               onClick={() => { setDropdownOpen((v) => !v); setNotifOpen(false); }}
-              className="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 transition-colors"
             >
-              {/* Avatar */}
               <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-indigo-100 flex items-center justify-center">
                 {userImage ? (
                   <Image src={userImage} alt={userName} width={32} height={32} className="object-cover" />
@@ -218,26 +228,19 @@ export default function Topbar({ userName, userEmail, userImage }: TopbarProps) 
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
                 <div className="absolute right-0 mt-1 w-56 bg-white rounded-2xl shadow-lg border border-gray-100 z-20 overflow-hidden">
-                  {/* User info */}
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-semibold text-gray-900">{userName}</p>
                     <p className="text-xs text-gray-400 truncate">{userEmail}</p>
                   </div>
-                  {/* Menu items */}
                   <div className="py-1">
-                    <a
-                      href="/shared/settings/profile"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <SettingsIcon />
-                      Account Settings
+                    <a href="/shared/settings/profile"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      <SettingsIcon /> Account Settings
                     </a>
                     <button
                       onClick={() => signOut({ callbackUrl: "/login" })}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <SignOutIcon />
-                      Sign out
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                      <SignOutIcon /> Sign out
                     </button>
                   </div>
                 </div>
