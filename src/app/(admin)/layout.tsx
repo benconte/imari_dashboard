@@ -20,7 +20,7 @@ export default async function AdminLayout({
   const userImage = (session?.user as { image?: string })?.image ?? null;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-white">
       <AdminShell
         role={role}
         userName={userName}

@@ -1,26 +1,37 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { Suspense, useCallback, useRef, useState, useTransition } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import AuthBrandPanel from "@/components/auth/AuthPanelBrand"
 import { AdminRole } from "@/types/next-auth"
 import { ROLE_HOME } from "@/lib/auth-options"
+import { MfaSearchParamsSuspense } from "./MfaSearchParamsClient"
 
 const DIGITS = 6
 
 export default function MfaPage() {
-  const router      = useRouter()
-  const params      = useSearchParams()
-  const adminId     = params.get("adminId") ?? ""   
+  const router = useRouter()
+
+  const [adminId, setAdminId] = useState<string>("")
+
+  const handleParams = useCallback(
+    ({ adminId }: { adminId: string }) => {
+      setAdminId(adminId)
+    },
+    []
+  )
+
 
   const [isPending, startTransition] = useTransition()
-  const [digits, setDigits]         = useState<string[]>(Array(DIGITS).fill(""))
-  const [error, setError]           = useState<string | null>(null)
+
+  const [digits, setDigits] = useState<string[]>(Array(DIGITS).fill(""))
+  const [error, setError] = useState<string | null>(null)
   const refs = useRef<(HTMLInputElement | null)[]>([])
 
   const code = digits.join("")
+
 
   function handleChange(index: number, value: string) {
     const cleaned = value.replace(/\D/g, "").slice(0, 1)
@@ -46,6 +57,7 @@ export default function MfaPage() {
   }
 
   function handleSubmit(e: React.FormEvent) {
+
     e.preventDefault()
     if (code.length < DIGITS) { setError("Please enter all 6 digits."); return }
     setError(null)
@@ -73,6 +85,8 @@ export default function MfaPage() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-[1fr_46%]">
+      <MfaSearchParamsSuspense onParams={handleParams} />
+
 
       {/* ── Left ──────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-center bg-white px-6 py-12 sm:px-12">

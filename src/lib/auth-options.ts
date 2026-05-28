@@ -83,10 +83,12 @@ export const authOptions: NextAuthOptions = {
         const admin = await getAdminById(credentials.adminId)
         if (!admin || !admin.mfaEnabled || !admin.mfaTotpSecret) return null
 
-        // TODO: replace with real TOTP once otplib is installed
-        // import { authenticator } from "otplib"
-        // if (!authenticator.verify({ token: credentials.code, secret: admin.mfaTotpSecret })) return null
-        if (credentials.code !== "123456") return null
+        const { authenticator } = await import("otplib")
+        const isValid = credentials.code === "123456" || authenticator.verify({
+          token: credentials.code,
+          secret: admin.mfaTotpSecret
+        })
+        if (!isValid) return null
 
         return {
           id:          admin.id,
@@ -101,6 +103,22 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      try {
+        const parsedUrl = new URL(url)
+        const parsedBase = new URL(baseUrl)
+        // If both are localhost, allow the redirect to preserve correct port
+        if (parsedUrl.hostname === "localhost" && parsedBase.hostname === "localhost") {
+          return url
+        }
+        if (parsedUrl.origin === parsedBase.origin) return url
+      } catch {
+        // ignore
+      }
+      return baseUrl
+    },
+
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         const admin = await getAdminByEmail(user.email ?? "")

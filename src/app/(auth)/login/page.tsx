@@ -1,30 +1,51 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { Suspense, useCallback, useEffect, useState, useTransition } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
+
 import Link from "next/link"
 import AuthBrandPanel from "@/components/auth/AuthPanelBrand"
 import { AdminRole } from "@/types/next-auth"
 import { ROLE_HOME } from "@/lib/auth-options"
+import {
+  LoginSearchParamsSuspense,
+} from "./LoginSearchParamsClient"
 
-export default function LoginPage() {
-  const router       = useRouter()
-  const searchParams = useSearchParams()
-  const callbackUrl  = searchParams.get("callbackUrl")
-  const errorParam   = searchParams.get("error")
+export default function LoginInner() {
+  const router = useRouter()
+
+  const [callbackUrl, setCallbackUrl] = useState<string | null>(null)
+  const [errorParam, setErrorParam] = useState<string | null>(null)
+
+  const handleParams = useCallback(
+    ({ callbackUrl, errorParam }: { callbackUrl: string | null; errorParam: string | null }) => {
+      setCallbackUrl(callbackUrl)
+      setErrorParam(errorParam)
+    },
+    []
+  )
+
 
   const [isPending, startTransition] = useTransition()
-  const [email, setEmail]           = useState("")
-  const [password, setPassword]     = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError]           = useState<string | null>(
+
+  const [error, setError] = useState<string | null>(null)
+
+  // Derive initial error message from URL params.
+  // This avoids setState synchronously inside an effect.
+  const initialError =
     errorParam === "NotAnAdmin"
       ? "This Google account is not associated with an admin account."
       : errorParam
         ? "Authentication failed. Please try again."
         : null
-  )
+
+
+
+
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -69,7 +90,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen grid lg:grid-cols-[1fr_46%]">
 
+      <LoginSearchParamsSuspense onParams={handleParams} />
+
       {/* ── Left: Form ───────────────────────────────────────────────────── */}
+
       <div className="flex items-center justify-center bg-white px-6 py-12 sm:px-12">
         <div className="w-full max-w-md space-y-8">
 
