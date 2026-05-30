@@ -9,6 +9,7 @@ export const ROLE_HOME: Record<AdminRole, string> = {
   SUPER_ADMIN:     "/super-admin/overview",
   FINANCIAL_ADMIN: "/financial-admin/overview",
   SUPPORT_ADMIN:   "/support-admin/overview",
+  FRAUD_ADMIN:     "/fraud-admin/overview",   
 }
 
 export const authOptions: NextAuthOptions = {
@@ -19,9 +20,6 @@ export const authOptions: NextAuthOptions = {
   },
 
   providers: [
-    // ── Google OAuth ──────────────────────────────────────────────────────────
-    // Only pre-existing admins can sign in via Google.
-    // Any Google account not already in the DB is rejected.
     GoogleProvider({
       clientId:     process.env.GOOGLE_CLIENT_ID     ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
@@ -31,15 +29,13 @@ export const authOptions: NextAuthOptions = {
           name:        profile.name,
           email:       profile.email,
           image:       profile.picture,
-          role:        "SUPPORT_ADMIN" as AdminRole, // overridden in signIn callback
+          role:        "SUPPORT_ADMIN" as AdminRole,
           mfaEnabled:  false,
           mfaVerified: false,
         }
       },
     }),
 
-    // ── Email + Password ───────────────────────────────────────────────────────
-    // Role is NEVER submitted by the client — it is always read from the DB.
     CredentialsProvider({
       id:   "credentials",
       name: "Email",
@@ -49,27 +45,21 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null
-
         const admin = await getAdminByEmail(credentials.email)
         if (!admin) return null
-
         const valid = await bcrypt.compare(credentials.password, admin.passwordHash)
         if (!valid) return null
-
         return {
           id:          admin.id,
           name:        admin.name,
           email:       admin.email,
-          role:        admin.role,        // always from DB
+          role:        admin.role,
           mfaEnabled:  admin.mfaEnabled,
           mfaVerified: false,
         }
       },
     }),
 
-    // ── MFA second factor ──────────────────────────────────────────────────────
-    // Called after credentials succeed when mfaEnabled === true.
-    // Issues a new JWT with mfaVerified: true.
     CredentialsProvider({
       id:   "mfa",
       name: "MFA",
@@ -79,17 +69,14 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.adminId || !credentials.code) return null
-
         const admin = await getAdminById(credentials.adminId)
         if (!admin || !admin.mfaEnabled || !admin.mfaTotpSecret) return null
-
         const { authenticator } = await import("otplib")
         const isValid = credentials.code === "123456" || authenticator.verify({
           token: credentials.code,
           secret: admin.mfaTotpSecret
         })
         if (!isValid) return null
-
         return {
           id:          admin.id,
           name:        admin.name,
@@ -108,14 +95,9 @@ export const authOptions: NextAuthOptions = {
       try {
         const parsedUrl = new URL(url)
         const parsedBase = new URL(baseUrl)
-        // If both are localhost, allow the redirect to preserve correct port
-        if (parsedUrl.hostname === "localhost" && parsedBase.hostname === "localhost") {
-          return url
-        }
+        if (parsedUrl.hostname === "localhost" && parsedBase.hostname === "localhost") return url
         if (parsedUrl.origin === parsedBase.origin) return url
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
       return baseUrl
     },
 

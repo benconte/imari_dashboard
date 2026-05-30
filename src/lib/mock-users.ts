@@ -47,6 +47,17 @@ export const MOCK_ADMINS: DBAdmin[] = [
     mfaEnabled: false,
     mfaTotpSecret: null,
   },
+    {
+    id: "4",
+    name: "Nina Vasquez",
+    email: "fraud@imari.com",
+    passwordHash: "$2b$10$kDHE2VCRh3tecb7buB7QduSXZEHyHXbMdpWkpHnhyc08sBuebOTJu",
+    role: "FRAUD_ADMIN",
+    mfaEnabled: true,       // MFA always required for security roles
+    mfaTotpSecret: "JBSWY3DPEHPK3PXP",
+  },
+
+
 ]
 
 export async function getAdminByEmail(email: string): Promise<DBAdmin | null> {

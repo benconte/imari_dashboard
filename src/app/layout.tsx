@@ -18,12 +18,6 @@ export const metadata: Metadata = {
   description: "Imari Admin Dashboard",
 };
 
-export const viewport = {
-  links: [
-    { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" },
-  ],
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,6 +28,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+      </head>
       <body className="min-h-full flex flex-col"><QueryProvider>{children}</QueryProvider></body>
     </html>
   );

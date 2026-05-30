@@ -170,6 +170,20 @@ const NAV_CONFIG: Record<AdminRole, NavSection[]> = {
       ],
     },
   ],
+
+  FRAUD_ADMIN: [
+    {
+      title: "MAIN MENU",
+      items: [
+        { label: "Overview",     href: "/fraud-admin/overview", icon: I.Overview },
+        { label: "Alerts",       href: "/fraud-admin/alerts",   icon: I.Fraud },
+        { label: "Transactions", href: "/fraud-admin/transactions", icon: I.Transactions },
+        { label: "KYC Fraud",    href: "/fraud-admin/kyc-fraud",  icon: I.KYC },
+        { label: "Audit Log",    href: "/fraud-admin/audit-log",  icon: I.Fraud },
+      ],
+    },
+  ],
+
 };
 
 // ── Role meta ─────────────────────────────────────────────────────────────────
@@ -178,6 +192,7 @@ const ROLE_META: Record<AdminRole, { label: string; color: string }> = {
   SUPER_ADMIN:     { label: "Super Admin",     color: "bg-violet-100 text-violet-700" },
   FINANCIAL_ADMIN: { label: "Financial Admin", color: "bg-emerald-100 text-emerald-700" },
   SUPPORT_ADMIN:   { label: "Support Admin",   color: "bg-blue-100 text-blue-700" },
+  FRAUD_ADMIN:     { label: "Fraud Admin",     color: "bg-amber-100 text-amber-700" },
 };
 
 // ── Chevron ───────────────────────────────────────────────────────────────────

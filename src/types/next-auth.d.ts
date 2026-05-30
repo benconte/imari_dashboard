@@ -1,7 +1,7 @@
 import "next-auth"
 import "next-auth/jwt"
 
-export type AdminRole = "SUPER_ADMIN" | "FINANCIAL_ADMIN" | "SUPPORT_ADMIN"
+export type AdminRole = "SUPER_ADMIN" | "FINANCIAL_ADMIN" | "SUPPORT_ADMIN" | "FRAUD_ADMIN"
 
 declare module "next-auth" {
   interface User {
