@@ -1,14 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import { StatCard } from '@/components/shared/StatCard';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import {
-  RefreshCw,
-  Calendar,
-  Tag,
-  Plus,
-} from 'lucide-react';
+import StatCard from '@/components/shared/StatCard';
+import StatusBadge from '@/components/shared/StatusBadge';
+import { Plus } from 'lucide-react';
 
 interface SubModel {
   id: string;
@@ -17,7 +12,15 @@ interface SubModel {
   cost: number;
   frequency: 'Monthly' | 'Annual';
   nextBilling: string;
-  status: 'Active' | 'Paused' | 'Pending Cancel';
+  status:
+    | 'active'
+    | 'pending'
+    | 'flagged'
+    | 'frozen'
+    | 'failed'
+    | 'closed'
+    | 'escalated'
+    | 'under_review';
   owner: string;
 }
 
@@ -31,7 +34,7 @@ const initialSubs: SubModel[] = [
     cost: 18450.0,
     frequency: 'Monthly',
     nextBilling: 'Jun 12, 2026',
-    status: 'Active',
+    status: 'active',
     owner: 'Alex Rivera',
   },
   {
@@ -41,7 +44,7 @@ const initialSubs: SubModel[] = [
     cost: 12000.0,
     frequency: 'Monthly',
     nextBilling: 'Jun 18, 2026',
-    status: 'Active',
+    status: 'active',
     owner: 'Sarah Jenkins',
   },
   {
@@ -51,7 +54,7 @@ const initialSubs: SubModel[] = [
     cost: 1200.0,
     frequency: 'Annual',
     nextBilling: 'Sep 01, 2026',
-    status: 'Active',
+    status: 'active',
     owner: 'Elena Chen',
   },
   {
@@ -61,7 +64,7 @@ const initialSubs: SubModel[] = [
     cost: 4500.0,
     frequency: 'Monthly',
     nextBilling: 'Jun 04, 2026',
-    status: 'Paused',
+    status: 'frozen',
     owner: 'John Sterling',
   },
 ];
@@ -82,7 +85,7 @@ export function SubscriptionsGrid({
   const [newSubCost, setNewSubCost] = useState('1000');
 
   const activeCost = useMemo(
-    () => subs.filter((s) => s.status === 'Active').reduce((sum, s) => sum + s.cost, 0),
+    () => subs.filter((s) => s.status === 'active').reduce((sum, s) => sum + s.cost, 0),
     [subs],
   );
 
@@ -92,7 +95,7 @@ export function SubscriptionsGrid({
         if (s.id !== id) return s;
         return {
           ...s,
-          status: s.status === 'Active' ? 'Paused' : 'Active',
+          status: s.status === 'active' ? 'frozen' : 'active',
         };
       }),
     );
@@ -109,7 +112,7 @@ export function SubscriptionsGrid({
       cost: parseFloat(newSubCost) || 500,
       frequency: 'Monthly',
       nextBilling: 'Jun 20, 2026',
-      status: 'Active',
+      status: 'active',
       owner: 'Alex Rivera',
     };
 
@@ -124,25 +127,28 @@ export function SubscriptionsGrid({
       {showTopStats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <StatCard
-            title="ACTIVE RECURRING COST"
+            label="ACTIVE RECURRING COST"
             value={`$${activeCost.toLocaleString('en-US')}/mo`}
-            subtitle="Enterprise SaaS, Server and Ads spending"
-            icon={<RefreshCw />}
-            iconBgClass="bg-indigo-50 text-indigo-600"
+            delta="Enterprise SaaS, Server and Ads spending"
+            deltaVariant="neutral"
+            icon="refresh"
+            className="text-left"
           />
           <StatCard
-            title="TOTAL SUBSCRIPTIONS"
+            label="TOTAL SUBSCRIPTIONS"
             value={String(subs.length)}
-            subtitle={`${subs.filter((s) => s.status === 'Active').length} currently active`}
-            icon={<Tag />}
-            iconBgClass="bg-emerald-50 text-emerald-600"
+            delta={`${subs.filter((s) => s.status === 'active').length} currently active`}
+            deltaVariant="neutral"
+            icon="label"
+            className="text-left"
           />
           <StatCard
-            title="NEXT MAJOR PAYMENT EXECUTING"
+            label="NEXT MAJOR PAYMENT EXECUTING"
             value="In 9 Days"
-            subtitle="AWS Invoice due ($18,450.00)"
-            icon={<Calendar />}
-            iconBgClass="bg-indigo-50 text-indigo-600"
+            delta="AWS Invoice due ($18,450.00)"
+            deltaVariant="neutral"
+            icon="event"
+            className="text-left"
           />
         </div>
       )}
@@ -228,7 +234,9 @@ export function SubscriptionsGrid({
           <div
             key={s.id}
             className={`bg-white rounded-2xl border ${
-              s.status === 'Paused' ? 'border-dashed border-gray-200 opacity-75' : 'border-gray-105'
+              s.status === 'frozen'
+                ? 'border-dashed border-gray-200 opacity-75'
+                : 'border-gray-105'
             } p-6 h-full flex flex-col justify-between space-y-5 hover:shadow-md transition-all duration-200`}
           >
             <div className="flex justify-between items-start">
@@ -264,12 +272,12 @@ export function SubscriptionsGrid({
                 type="button"
                 onClick={() => handleToggleSub(s.id)}
                 className={`w-full py-2 rounded-xl text-xs font-bold text-center transition-colors ${
-                  s.status === 'Paused'
+                  s.status === 'frozen'
                     ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-600'
                     : 'bg-rose-50 hover:bg-rose-100 text-rose-600'
                 }`}
               >
-                {s.status === 'Paused' ? 'Resume Billing' : 'Pause Contract'}
+                {s.status === 'frozen' ? 'Resume Billing' : 'Pause Contract'}
               </button>
             </div>
           </div>

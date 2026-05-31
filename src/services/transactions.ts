@@ -1,17 +1,20 @@
-import { Transaction, ActivityLog, OverviewMetrics } from '../types';
+import { ActivityLog, OverviewMetrics } from '../types';
+
 
 // Concrete, high-fidelity mock data matching the screenshot/HTML precisely
-const mockTransactions: Transaction[] = [
+const mockTransactions: any[] = [
   {
     id: '#TX-94285-IM',
     clientName: 'John Sterling',
     clientEmail: 'john.s@example.com',
     clientInitials: 'JS',
     clientAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200',
-    amount: 12450.00,
+    amount: '12450.00',
+
     type: 'WITHDRAWAL',
-    status: 'Completed',
+    status: 'Active',
     dateTime: 'Oct 24, 2023 14:22:45',
+
     timezone: 'EST'
   },
   {
@@ -119,7 +122,8 @@ const mockOverviewMetrics: OverviewMetrics = {
 };
 
 // Async service functions with simulated network delay
-export const getTransactions = async (): Promise<Transaction[]> => {
+export const getTransactions = async (): Promise<any[]> => {
+
   return new Promise((resolve) => {
     setTimeout(() => resolve(mockTransactions), 150);
   });

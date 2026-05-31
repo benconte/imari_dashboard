@@ -13,6 +13,7 @@ import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
 import SearchBar from "@/components/shared/SearchBar";
+import ExportButton from "@/components/shared/ExportButton";
 
 export default function FraudAdminTransactionsPage() {
   const [search, setSearch] = useState("");
@@ -50,9 +51,7 @@ export default function FraudAdminTransactionsPage() {
         title="Flagged Transactions"
         subtitle="High-risk & flagged transactions requiring fraud review"
         action={
-          <Button variant="outline" size="sm" icon="download">
-            Export CSV
-          </Button>
+          <ExportButton data={filtered} preset="audits" />
         }
       />
 

@@ -7,6 +7,7 @@ import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
 import BarChart from "@/components/charts/BarChart";
 import type { ApexOptions } from "apexcharts";
+import ExportButton from "@/components/shared/ExportButton";
 
 const CORRIDOR_STATUS: Record<string, "success" | "warning" | "danger"> = { Nominal: "success", "High Load": "warning", "Stalled Queue": "danger" };
 
@@ -29,7 +30,7 @@ export default function CashFlowsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Cash Flow" subtitle="Inflow, outflow & liquidity" action={<Button variant="outline" size="sm" icon="download">Export</Button>} />
+      <PageHeader title="Cash Flow" subtitle="Inflow, outflow & liquidity" action={<ExportButton data={corridors}  />} />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">24h Inflow</p><p className="text-3xl font-bold text-green-600 mt-2">${(totalInflow / 1000000).toFixed(1)}M</p></div>

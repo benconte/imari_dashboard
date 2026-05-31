@@ -1,9 +1,5 @@
 "use client";
 
-// Direct reuse of the super-admin audit log page, scoped to /fraud-admin/.
-// The Fraud Officer needs read-only access to the security audit trail
-// to support investigations. No write actions are exposed here.
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getAudits } from "@/services";
@@ -13,6 +9,7 @@ import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
 import Card from "@/components/shared/Card";
 import SearchBar from "@/components/shared/SearchBar";
+import ExportButton from "@/components/shared/ExportButton";
 
 const ROLE_BADGE: Record<string, "violet" | "success" | "info" | "neutral"> = {
   SUPER_ADMIN: "violet",
@@ -73,9 +70,7 @@ export default function FraudAdminAuditLogPage() {
         title="Security Audit Trail"
         subtitle="Immutable operator action log with cryptographic hash verification"
         action={
-          <Button variant="outline" size="sm" icon="download">
-            Export Log
-          </Button>
+         <ExportButton data={filtered} preset="audits" />
         }
       />
 

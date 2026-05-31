@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { PageWrapper } from '@/components/shared/PageWrapper';
-import { StatCard } from '@/components/shared/StatCard';
-import { Plus, CreditCard, ShieldCheck, Eye, EyeOff, Lock, Unlock, ChevronLeft, SlidersHorizontal, Activity } from 'lucide-react';
+import StatCard from '@/components/shared/StatCard';
+import { Plus,  Eye, EyeOff, Lock, Unlock, ChevronLeft, SlidersHorizontal, Activity } from 'lucide-react';
 
 import { VirtualCardCard, VirtualCardItem } from '@/components/virtual-cards/VirtualCardCard';
 
@@ -331,27 +331,25 @@ export const VirtualCardsPage: React.FC = () => {
       {/* Cards stats row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
-          title="ACTIVE CARDS SPEND"
+          label="ACTIVE CARDS SPEND"
           value={`$${totalCardSpent.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-          subtitle={`Out of $${totalCardLimit.toLocaleString('en-US')} authorized limit.`}
-          progressBarPercent={Math.round((totalCardSpent / totalCardLimit) * 100)}
-          icon={<CreditCard />}
-          iconBgClass="bg-indigo-50 text-indigo-600"
+          delta={`Out of $${totalCardLimit.toLocaleString('en-US')} authorized limit.`}
+          deltaVariant="neutral"
+          icon="credit_card"
         />
         <StatCard
-          title="TOTAL CARDS ISSUED"
+          label="TOTAL CARDS ISSUED"
           value={String(cards.length)}
-          subtitle={`${cards.filter((c) => c.status === 'Active').length} currently active`}
-          icon={<ShieldCheck />}
-          iconBgClass="bg-emerald-50 text-emerald-600"
+          delta={`${cards.filter((c) => c.status === 'Active').length} currently active`}
+          deltaVariant="neutral"
+          icon="shield_check"
         />
         <StatCard
-          title="AVG SPEND EFFICIENCY"
+          label="AVG SPEND EFFICIENCY"
           value="84.2%"
           delta="+3.1%"
-          deltaType="up"
-          icon={<Activity />}
-          iconBgClass="bg-indigo-50 text-indigo-600"
+          deltaVariant="success"
+          icon="activity"
         />
       </div>
 

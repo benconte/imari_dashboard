@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Eye, EyeOff, Lock, Unlock } from 'lucide-react';
-import { StatusBadge } from '../shared/StatusBadge';
+import StatusBadge from '../shared/StatusBadge';
 
 export type VirtualCardStatus = 'Active' | 'Frozen';
 export type VirtualCardType = 'Single-use' | 'Recurring';
@@ -46,7 +46,7 @@ export const VirtualCardCard: React.FC<VirtualCardCardProps> = ({
       } shadow-sm p-6 hover:shadow-md cursor-pointer hover:border-indigo-300 transition-all duration-200 flex flex-col justify-between space-y-6`}
     >
       {/* Card Meta Header */}
-      <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start">
         <div>
           <h4 className="text-sm font-bold text-gray-900 leading-tight">{card.name}</h4>
           <div className="flex items-center gap-2 mt-1.5">
@@ -56,7 +56,7 @@ export const VirtualCardCard: React.FC<VirtualCardCardProps> = ({
             {card.merchant && <span className="text-[10px] font-bold text-indigo-500">Locked: {card.merchant}</span>}
           </div>
         </div>
-        <StatusBadge status={card.status} />
+        <StatusBadge status={card.status === 'Frozen' ? 'frozen' : 'active'} />
       </div>
 
       {/* Physical/Digital Card Render */}

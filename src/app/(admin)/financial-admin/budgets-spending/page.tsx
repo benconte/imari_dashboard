@@ -8,6 +8,7 @@ import Button from "@/components/shared/Button";
 import SearchBar from "@/components/shared/SearchBar";
 import BarChart from "@/components/charts/BarChart";
 import type { ApexOptions } from "apexcharts";
+import ExportButton from "@/components/shared/ExportButton";
 
 function getPercentColor(pct: number) {
   if (pct >= 90) return "bg-red-500";
@@ -34,7 +35,7 @@ export default function BudgetsSpendingPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Budgets & Spending" subtitle="Platform-wide spending analytics" action={<Button variant="outline" size="sm" icon="download">Export</Button>} />
+      <PageHeader title="Budgets & Spending" subtitle="Platform-wide spending analytics" action={<ExportButton data={filtered} />} />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Categories</p><p className="text-3xl font-bold text-gray-900 mt-2">{categories.length}</p></div>

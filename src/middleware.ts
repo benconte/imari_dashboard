@@ -17,6 +17,7 @@ const ROLE_ALLOWED_PATHS: Record<AdminRole, string[]> = {
   SUPER_ADMIN:     ["/super-admin"],
   FINANCIAL_ADMIN: ["/financial-admin"],
   SUPPORT_ADMIN:   ["/support-admin"],
+  FRAUD_ADMIN:     ["/fraud-admin"],
 }
 
 // All protected prefixes combined (used to detect admin routes)

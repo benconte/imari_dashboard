@@ -46,6 +46,7 @@ export interface KYCSubmission {
   idCardUrl: string;
   faceMatchPct: number;
   noAmlMatches: boolean;
+  docAuthVerified: boolean;
 }
 
 export interface AlertItem {
@@ -185,3 +186,103 @@ export interface CategoryLimit {
   unallocated: string;
   owner: string;
 }
+
+export interface ComplianceReport {
+  id: string;
+  type: string;
+  period: string;
+  status: string;
+  format: string;
+}
+
+export interface ComplianceMetrics {
+  healthScore: number;
+  openIssuesCount: number;
+  isUrgent: boolean;
+  nextAuditDays: number;
+}
+
+export interface PlatformOverviewMetrics {
+  activeUsers: string;
+  activeUsersPct: string;
+  kycPending: number;
+  kycPendingStatus: string;
+  walletTotal: string;
+  avgWalletUsage: string;
+  systemStatus: string;
+  systemUptime: string;
+}
+
+export interface PlatformGrowthPoint {
+  date: string;
+  dau: number;
+  mau: number;
+}
+
+export interface SystemEvent {
+  id: string;
+  title: string;
+  description: string;
+  timeLabel: string;
+  icon: string;
+  type: "success" | "info" | "critical";
+}
+
+export interface NodeLatency {
+  id: string;
+  region: string;
+  latency: string;
+  percentage: number;
+  isWarning: boolean;
+}
+
+// Financial Admin: Transactions (high-fidelity mock models)
+export type ActivityLogType = 'warning' | 'success' | 'info' | 'alert'
+
+export interface ActivityLog {
+  id: string;
+  title: string;
+  description: string;
+  timeAgo: string;
+  type: ActivityLogType;
+}
+
+export interface OverviewMetrics {
+  totalVolumeToday: string;
+  totalVolumeDelta: string;
+  pendingCount: number;
+  failedCount: number;
+  failedDelta: string;
+  kycQueueCount: number;
+  kycAvatars: string[];
+}
+
+// Financial Admin: Wallets (mock models)
+export type WalletStatus = 'Active' | 'Frozen'
+
+export interface Wallet {
+  id: string;
+  userName: string;
+  userInitials: string;
+  userBgClass: string;
+  balanceUsd: number;
+  currency: string;
+  lastActivity: string;
+  status: WalletStatus;
+}
+
+export interface WalletMetrics {
+  totalBalanceUsd: number;
+  totalBalanceDelta: string;
+  activeWalletsCount: number;
+  activeWalletsNewToday: number;
+  fundingRate: number;
+  fundingRateStability: string;
+}
+
+
+
+
+
+
+

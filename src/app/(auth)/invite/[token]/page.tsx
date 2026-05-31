@@ -20,6 +20,7 @@ const ROLE_LABELS: Record<AdminRole, string> = {
   SUPER_ADMIN:     "Super Administrator",
   FINANCIAL_ADMIN: "Financial Administrator",
   SUPPORT_ADMIN:   "Support Administrator",
+  FRAUD_ADMIN:     "Fraud Officer",
 }
 
 export default function AcceptInvitePage() {

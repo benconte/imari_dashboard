@@ -6,6 +6,7 @@ import Card from "@/components/shared/Card";
 import Button from "@/components/shared/Button";
 import SearchBar from "@/components/shared/SearchBar";
 import { useState } from "react";
+import ExportButton from "@/components/shared/ExportButton";
 
 function getPercentColor(pct: number) { return pct >= 90 ? "text-red-600" : pct >= 70 ? "text-amber-600" : "text-blue-600"; }
 function getBarColor(pct: number) { return pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-blue-600"; }
@@ -17,7 +18,7 @@ export default function BudgetCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Budget Categories" subtitle="Expense category rules & limits" action={<Button variant="outline" size="sm" icon="download">Export</Button>} />
+      <PageHeader title="Budget Categories" subtitle="Expense category rules & limits" action={<ExportButton data={filtered}  />} />
 
       <Card padded={false}>
         <div className="p-4 border-b border-gray-100"><SearchBar value={search} onChange={setSearch} placeholder="Search categories..." /></div>

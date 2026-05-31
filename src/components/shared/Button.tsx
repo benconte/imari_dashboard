@@ -12,11 +12,6 @@ type ButtonSize = "xs" | "sm" | "md";
 type ButtonProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /**
-   * Icon identifier.
-   * - If it matches an export from lucide-react, that Lucide icon will be rendered.
-   * - Otherwise it falls back to Material Symbols using the same string.
-   */
   icon?: string;
   children?: React.ReactNode;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;

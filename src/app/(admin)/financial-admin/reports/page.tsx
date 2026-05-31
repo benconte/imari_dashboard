@@ -6,6 +6,7 @@ import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
 import SearchBar from "@/components/shared/SearchBar";
+import ExportButton from "@/components/shared/ExportButton";
 
 interface Report {
   id: string;
@@ -67,7 +68,7 @@ export default function ReportsPage() {
                   <td className="px-6 py-4"><Badge variant={STATUS_BADGE[r.status] ?? "neutral"}>{r.status}</Badge></td>
                   <td className="px-6 py-4 text-right">
                     {r.status === "Ready" ? (
-                      <Button variant="outline" size="xs" icon="download">Download</Button>
+                      <ExportButton data={filtered}  />
                     ) : r.status === "Processing" ? (
                       <span className="text-[10px] text-amber-600 font-bold">Generating...</span>
                     ) : (

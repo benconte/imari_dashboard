@@ -7,6 +7,7 @@ import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
 import SearchBar from "@/components/shared/SearchBar";
 import { useState } from "react";
+import ExportButton from "@/components/shared/ExportButton";
 
 const RESULT_BADGE: Record<string, "success" | "danger" | "warning"> = { Passed: "success", Flagged: "danger", "Pending Action": "warning" };
 const CATEGORY_BADGE: Record<string, "info" | "warning" | "neutral"> = { "AML Check": "info", "Liquidity Audit": "warning", "Rule Update": "neutral", "Access Revocation": "neutral" };
@@ -20,7 +21,7 @@ export default function CompliancePage() {
     <div className="space-y-6">
       <PageHeader title="Compliance" subtitle="Compliance monitoring & reports" action={
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" icon="download">Export Report</Button>
+          <ExportButton data={filtered}  />
           <Button variant="outline" size="sm" icon="gpp_maybe">Run Scan</Button>
         </div>
       } />

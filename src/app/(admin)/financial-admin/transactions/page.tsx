@@ -7,7 +7,9 @@ import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
+import type { Transaction } from "@/types";
 import SearchBar from "@/components/shared/SearchBar";
+import ExportButton from "@/components/shared/ExportButton";
 
 export default function TransactionsPage() {
   const [search, setSearch] = useState("");
@@ -28,7 +30,22 @@ export default function TransactionsPage() {
       <PageHeader title="Transactions" subtitle="Transaction monitoring & ledger" action={
         <div className="flex gap-2">
           <Button variant="outline" size="sm" icon="filter_list">Filter</Button>
-          <Button variant="outline" size="sm" icon="download">Export CSV</Button>
+          <ExportButton
+            label="Export"
+            data={filtered.map((t: Transaction) => ({ 
+              id: t.id,
+              timestamp: (t as unknown as { timestamp: string }).timestamp,
+              entityName: (t as unknown as { entityName: string }).entityName,
+              entityId: (t as unknown as { entityId: string }).entityId,
+              amount: (t as unknown as { amount: string }).amount,
+              type: (t as unknown as { type?: string }).type,
+              riskLevel: (t as unknown as { riskLevel: string }).riskLevel,
+              riskScore: (t as unknown as { riskScore: string | number }).riskScore,
+              status: (t as unknown as { status: string }).status,
+            }))}
+            preset="transactions"
+            className="hidden sm:inline-flex"
+          />
         </div>
       } />
 

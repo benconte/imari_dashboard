@@ -20,6 +20,11 @@ const ROLE_COPY: Record<AdminRole, Copy> = {
     sub: "Support Administrator Portal",
     desc: "Sign in to manage support tickets, user inquiries, and provide technical assistance.",
   },
+  FRAUD_ADMIN: {
+    headline: "Welcome Back!",
+    sub: "Fraud Officer Portal",
+    desc: "Sign in to monitor and investigate fraudulent activities, manage alerts, and enforce security measures.",
+  },
 }
 
 

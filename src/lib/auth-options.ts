@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
+import type {TOTP} from "otplib"
 import { getAdminByEmail, getAdminById } from "@/lib/mock-users"
 import { AdminRole } from "@/types/next-auth"
 
@@ -71,11 +72,14 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.adminId || !credentials.code) return null
         const admin = await getAdminById(credentials.adminId)
         if (!admin || !admin.mfaEnabled || !admin.mfaTotpSecret) return null
-        const { authenticator } = await import("otplib")
-        const isValid = credentials.code === "123456" || authenticator.verify({
-          token: credentials.code,
-          secret: admin.mfaTotpSecret
-        })
+        const otplib = await import("otplib") 
+        const { authenticator } = otplib as any
+        const isValid =
+          credentials.code === "123456" ||
+          authenticator.verify({
+            token: credentials.code,
+            secret: admin.mfaTotpSecret,
+          })
         if (!isValid) return null
         return {
           id:          admin.id,

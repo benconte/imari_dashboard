@@ -6,6 +6,7 @@ import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
+import ExportButton from "@/components/shared/ExportButton";
 
 const STATUS_BADGE: Record<string, "success" | "warning" | "info"> = { "Active Lock": "success", "Liquid Rebalancing": "warning", Accumulating: "info" };
 
@@ -15,7 +16,7 @@ export default function SavingVaultsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Savings Vaults" subtitle="Vault activity & savings performance" action={<Button variant="outline" size="sm" icon="download">Export</Button>} />
+      <PageHeader title="Savings Vaults" subtitle="Vault activity & savings performance" action={<ExportButton data={vaults} />} />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Balance</p><p className="text-3xl font-bold text-gray-900 mt-2">${(totalBalance / 1000000).toFixed(1)}M</p></div>
