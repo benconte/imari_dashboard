@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useCallback, useRef, useState, useTransition } from "react"
+import { useCallback, useRef, useState, useTransition } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"

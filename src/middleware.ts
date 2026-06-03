@@ -41,6 +41,22 @@ export default withAuth(
     // ── 1. MFA gate ────────────────────────────────────────────────────────────
     // If the admin has MFA enabled but hasn't verified it yet in this session,
     // send them to /mfa regardless of where they're going (except public paths).
+    // ── 1a. MFA setup gate (first time / not enrolled) ────────────────────
+    // If the user is logged in but hasn't enrolled MFA yet, force setup.
+    if (
+      !isPublic &&
+      token &&
+      !token.mfaEnabled &&
+      pathname !== "/mfa/setup" &&
+      pathname !== "/mfa"
+    ) {
+      const url = req.nextUrl.clone()
+      url.pathname = "/mfa/setup"
+      url.searchParams.set("adminId", String(token.id))
+      return NextResponse.redirect(url)
+    }
+
+    // ── 1b. MFA verification gate (MFA enabled but not verified) ───────
     if (
       !isPublic &&
       token &&
@@ -53,6 +69,7 @@ export default withAuth(
       url.searchParams.set("adminId", String(token.id))
       return NextResponse.redirect(url)
     }
+
 
     // ── 2. Role-based path guard ───────────────────────────────────────────────
     // Prevent cross-role access, e.g. a Financial Admin hitting /super-admin/*.
@@ -89,6 +106,6 @@ export default withAuth(
 )
 
 export const config = {
-  
   matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.svg$|.*\\.png$).*)"],
 }
+

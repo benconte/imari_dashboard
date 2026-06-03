@@ -10,15 +10,15 @@ type Params = {
 function MfaSearchParamsClient({ onParams }: { onParams: (p: Params) => void }) {
   const searchParams = useSearchParams();
 
-  const [params, setParams] = useState<Params>({ adminId: "" });
+  // params kept for backward compatibility; this page only needs adminId from query.
+  const [params] = useState<Params>({ adminId: "" });
 
-  useEffect(() => {
-    setParams({ adminId: searchParams.get("adminId") ?? "" });
-  }, [searchParams]);
 
+  // Keep a local state for compatibility with the existing callback.
+  // (Note: this page is only used during /mfa setup/verification.)
   useEffect(() => {
-    onParams(params);
-  }, [onParams, params]);
+    onParams({ adminId: searchParams.get("adminId") ?? "" })
+  }, [onParams, searchParams]);
 
   return null;
 }

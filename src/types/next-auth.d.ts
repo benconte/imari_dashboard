@@ -9,6 +9,8 @@ declare module "next-auth" {
     role: AdminRole
     mfaEnabled: boolean
     mfaVerified?: boolean
+    accessToken?: string
+    refreshToken?: string
   }
 
   interface Session {
@@ -19,6 +21,8 @@ declare module "next-auth" {
       role: AdminRole
       mfaEnabled: boolean
       mfaVerified: boolean
+      accessToken?: string
+      refreshToken?: string
     }
   }
 }
@@ -29,5 +33,7 @@ declare module "next-auth/jwt" {
     role: AdminRole
     mfaEnabled: boolean
     mfaVerified: boolean
+    accessToken?: string
+    refreshToken?: string
   }
 }
