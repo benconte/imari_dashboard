@@ -1,9 +1,8 @@
 "use client";
 
-import { use } from "react";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { MOCK_WALLETS } from "@/mock";
+import { use, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getWalletById, freezeWallet, unfreezeWallet } from "@/services";
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
@@ -16,9 +15,28 @@ const STATUS_BADGE: Record<string, "success" | "warning" | "danger"> = { Active:
 export default function WalletDetailPage({ params }: { params: Promise<{ walletId: string }> }) {
   const { walletId } = use(params);
   const [copied, setCopied] = useState(false);
+  const queryClient = useQueryClient();
 
-  const wallets = MOCK_WALLETS;
-  const wallet = wallets.find((w) => w.id === walletId);
+  const { data: wallet } = useQuery({ queryKey: ["wallet", walletId], queryFn: () => getWalletById(walletId) });
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["wallet", walletId] });
+    queryClient.invalidateQueries({ queryKey: ["wallets"] });
+  };
+
+  const { mutate: doFreeze, isPending: freezing, error: freezeErr } = useMutation({
+    mutationFn: () => freezeWallet(walletId),
+    onSuccess: invalidate,
+  });
+
+  const { mutate: doUnfreeze, isPending: unfreezing, error: unfreezeErr } = useMutation({
+    mutationFn: () => unfreezeWallet(walletId),
+    onSuccess: invalidate,
+  });
+
+  const isFrozen = wallet?.status === "Frozen";
+  const actionPending = freezing || unfreezing;
+  const actionErr = (freezeErr ?? unfreezeErr) as Error | null;
 
   const chartOptions: ApexOptions = {
     chart: { id: "funding-activity", toolbar: { show: false }, zoom: { enabled: false }, fontFamily: "Inter, sans-serif" },
@@ -44,12 +62,26 @@ export default function WalletDetailPage({ params }: { params: Promise<{ walletI
 
   return (
     <div className="space-y-6">
-      <PageHeader title={`Wallet: ${wallet.name}`} subtitle={`${wallet.currency} \u00B7 ${wallet.type}`} action={
+      <PageHeader title={`Wallet: ${wallet.name}`} subtitle={`${wallet.currency} · ${wallet.type}`} action={
         <div className="flex gap-2">
           <Button variant="outline" size="sm" icon="content_copy" onClick={() => { navigator.clipboard.writeText(wallet.accNo); setCopied(true); setTimeout(() => setCopied(false), 2000); }}>{copied ? "Copied!" : "Copy Address"}</Button>
-          <Button variant="outline" size="sm" icon="block">Freeze</Button>
+          <Button
+            variant={isFrozen ? "primary" : "outline"}
+            size="sm"
+            icon={isFrozen ? "lock_open" : "block"}
+            disabled={actionPending}
+            onClick={() => isFrozen ? doUnfreeze() : doFreeze()}
+          >
+            {actionPending ? (isFrozen ? "Activating…" : "Freezing…") : (isFrozen ? "Unfreeze" : "Freeze")}
+          </Button>
         </div>
       } />
+
+      {actionErr && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-4 py-3 rounded-xl">
+          {actionErr.message}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card padded>
@@ -85,8 +117,6 @@ export default function WalletDetailPage({ params }: { params: Promise<{ walletI
           <Card padded>
             <h4 className="text-sm font-bold text-gray-900 mb-3">Quick Actions</h4>
             <div className="space-y-2">
-              <Button variant="primary" size="sm" icon="swap_horiz" className="w-full justify-center">Manual Sweep</Button>
-              <Button variant="outline" size="sm" icon="sync" className="w-full justify-center">Reconcile</Button>
               <Button variant="outline" size="sm" icon="download" className="w-full justify-center">Export Ledger</Button>
             </div>
           </Card>
@@ -102,9 +132,16 @@ export default function WalletDetailPage({ params }: { params: Promise<{ walletI
                   </div>
                   <div className="w-full bg-blue-900/60 h-1.5 rounded-full"><div className="bg-blue-400 h-full w-[80%] rounded-full" /></div>
                 </div>
-                <button className="w-full py-2 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-lg transition-colors">
-                  {wallet.status === "Active" ? "Freeze Wallet" : "Activate Wallet"}
+                <button
+                  disabled={actionPending}
+                  onClick={() => isFrozen ? doUnfreeze() : doFreeze()}
+                  className="w-full py-2 bg-rose-500 hover:bg-rose-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg transition-colors"
+                >
+                  {actionPending
+                    ? (isFrozen ? "Activating…" : "Freezing…")
+                    : (isFrozen ? "Activate Wallet" : "Freeze Wallet")}
                 </button>
+                {actionErr && <p className="text-[10px] text-rose-200 mt-1">{actionErr.message}</p>}
               </div>
             </div>
           </div>

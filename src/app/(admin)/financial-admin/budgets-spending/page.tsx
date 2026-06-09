@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MOCK_CATEGORY_LIMITS } from "@/mock";
+import { useQuery } from "@tanstack/react-query";
+import { getBudgetCategoryLimits } from "@/services";
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Button from "@/components/shared/Button";
@@ -18,8 +19,9 @@ function getPercentColor(pct: number) {
 
 export default function BudgetsSpendingPage() {
   const [search, setSearch] = useState("");
-  const categories = MOCK_CATEGORY_LIMITS;
+  const { data: categories = [] } = useQuery({ queryKey: ["budgetCategoryLimits"], queryFn: getBudgetCategoryLimits });
   const filtered = categories.filter((c) => c.category.toLowerCase().includes(search.toLowerCase()));
+  const totalUnallocated = categories.reduce((s, c) => s + parseFloat(c.unallocated.replace(/[^0-9.]/g, "") || "0"), 0);
 
   const barOptions: ApexOptions = {
     chart: { id: "budget-bars", toolbar: { show: false }, fontFamily: "Inter, sans-serif" },
@@ -40,8 +42,8 @@ export default function BudgetsSpendingPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Categories</p><p className="text-3xl font-bold text-gray-900 mt-2">{categories.length}</p></div>
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Over Budget</p><p className="text-3xl font-bold text-red-600 mt-2">{categories.filter((c) => c.percent >= 90).length}</p></div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Utilization</p><p className="text-3xl font-bold text-blue-600 mt-2">{Math.round(categories.reduce((s, c) => s + c.percent, 0) / categories.length)}%</p></div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Unallocated</p><p className="text-3xl font-bold text-green-600 mt-2">$896k</p></div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Utilization</p><p className="text-3xl font-bold text-blue-600 mt-2">{categories.length ? Math.round(categories.reduce((s, c) => s + c.percent, 0) / categories.length) : 0}%</p></div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Unallocated</p><p className="text-3xl font-bold text-green-600 mt-2">${(totalUnallocated / 1000).toFixed(0)}k</p></div>
       </div>
 
       <Card padded={false}>

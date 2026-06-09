@@ -1,11 +1,12 @@
 "use client";
 
-import { MOCK_CATEGORY_LIMITS } from "@/mock";
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Button from "@/components/shared/Button";
 import SearchBar from "@/components/shared/SearchBar";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getBudgetCategoryLimits } from "@/services";
 import ExportButton from "@/components/shared/ExportButton";
 
 function getPercentColor(pct: number) { return pct >= 90 ? "text-red-600" : pct >= 70 ? "text-amber-600" : "text-blue-600"; }
@@ -13,7 +14,7 @@ function getBarColor(pct: number) { return pct >= 90 ? "bg-red-500" : pct >= 70 
 
 export default function BudgetCategoriesPage() {
   const [search, setSearch] = useState("");
-  const categories = MOCK_CATEGORY_LIMITS;
+  const { data: categories = [] } = useQuery({ queryKey: ["budgetCategoryLimits"], queryFn: getBudgetCategoryLimits });
   const filtered = categories.filter((c) => c.category.toLowerCase().includes(search.toLowerCase()));
 
   return (

@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { AdminRole } from "@/types/next-auth"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000"
-const ADMIN_LOGIN_URL = `${BACKEND_URL}/api/v1/api/v1/admin/login`
+const ADMIN_LOGIN_URL = `${BACKEND_URL}/api/v1/admin/login`
 
 export const ROLE_HOME: Record<AdminRole, string> = {
   SUPER_ADMIN:     "/super-admin/overview",
@@ -35,7 +35,9 @@ async function fetchAdminLogin(email: string, password: string, totpCode?: strin
     body: JSON.stringify({
       email,
       password,
-      ...(totpCode && totpCode.trim() ? { totpCode: totpCode.trim() } : {}),
+      ...(totpCode && totpCode !== "undefined" && totpCode.trim()
+        ? { totpCode: totpCode.trim() }
+        : {}),
     }),
   })
 
@@ -52,7 +54,9 @@ async function fetchAdminLogin(email: string, password: string, totpCode?: strin
     throw new Error(message)
   }
 
-  return response.json() as Promise<{
+  const body = await response.json()
+
+  return body.data as {
     accessToken: string
     refreshToken: string
     admin: {
@@ -62,7 +66,7 @@ async function fetchAdminLogin(email: string, password: string, totpCode?: strin
       lastName: string
       role: string
     }
-  }>
+  }
 }
 
 export const authOptions: NextAuthOptions = {

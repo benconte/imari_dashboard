@@ -1,14 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getTransactions } from "@/services";
+import { getFinancialTransactions } from "@/services";
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
 
 export default function PendingTransactionsPage() {
-  const { data: txList, isLoading } = useQuery({ queryKey: ["transactions"], queryFn: getTransactions });
+  const { data: txList, isLoading } = useQuery({ queryKey: ["financialTransactions"], queryFn: getFinancialTransactions });
   const pending = (txList ?? []).filter((tx) => tx.status === "Pending" || tx.status === "Flagged");
 
   return (

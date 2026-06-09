@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getOverviewMetrics, getTransactions } from "@/services";
+import { getFinancialOverviewMetrics, getFinancialTransactions } from "@/services";
 import PageHeader from "@/components/shared/PageHeader";
 import StatCard from "@/components/shared/StatCard";
 import Card from "@/components/shared/Card";
@@ -11,8 +11,8 @@ import AreaChart from "@/components/charts/AreaChart";
 import type { ApexOptions } from "apexcharts";
 
 export default function FinancialAdminOverview() {
-  const { data: metrics } = useQuery({ queryKey: ["overviewMetrics"], queryFn: getOverviewMetrics });
-  const { data: txList } = useQuery({ queryKey: ["transactions"], queryFn: getTransactions });
+  const { data: metrics } = useQuery({ queryKey: ["financialOverviewMetrics"], queryFn: getFinancialOverviewMetrics });
+  const { data: txList } = useQuery({ queryKey: ["financialTransactions"], queryFn: getFinancialTransactions });
 
   const chartOptions: ApexOptions = {
     chart: { id: "tx-volume", toolbar: { show: false }, zoom: { enabled: false }, fontFamily: "Inter, sans-serif" },
