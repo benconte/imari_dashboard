@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { AdminRole } from "@/types/next-auth";
@@ -205,6 +205,18 @@ function Chevron({ className }: { className?: string }) {
   );
 }
 
+
+function NavLinkSpinner() {
+  const { pending } = useLinkStatus();
+  if (!pending) return null;
+  return (
+    <svg className="h-3.5 w-3.5 shrink-0 animate-spin opacity-60" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}
+
 // ── Nav item ──────────────────────────────────────────────────────────────────
 
 function NavItemRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
@@ -213,8 +225,12 @@ function NavItemRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => vo
   const isSelfActive   = item.href ? (pathname === item.href || pathname.startsWith(item.href + "/")) : false;
   const isActive       = isSelfActive || !!isChildActive;
   const [open, setOpen] = useState(isActive);
+  const [prevIsActive, setPrevIsActive] = useState(isActive);
 
-  useEffect(() => { if (isActive) setOpen(true); }, [isActive]);
+  if (isActive !== prevIsActive) {
+    setPrevIsActive(isActive);
+    if (isActive) setOpen(true);
+  }
 
   const baseRow = `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group`;
   const activeRow = "bg-indigo-50 text-indigo-600";
@@ -227,12 +243,12 @@ function NavItemRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => vo
           onClick={() => setOpen((v) => !v)}
           className={`w-full ${baseRow} ${isActive ? activeRow : idleRow}`}
         >
-          <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-indigo-500" : "text-gray-400 group-hover:text-gray-600"}`} />
+          <item.icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-indigo-500" : "text-gray-400 group-hover:text-gray-600"}`} />
           <span className="flex-1 text-left">{item.label}</span>
-          <Chevron className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-indigo-400" : "text-gray-400"}`} />
+          <Chevron className={`w-4 h-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-indigo-400" : "text-gray-400"}`} />
         </button>
         {open && (
-          <div className="mt-0.5 ml-[30px] pl-3 border-l border-gray-100 space-y-0.5">
+          <div className="mt-0.5 ml-7.5 pl-3 border-l border-gray-100 space-y-0.5">
             {item.children.map((child) => {
               const childActive = pathname === child.href || pathname.startsWith(child.href + "/");
               return (
@@ -240,7 +256,10 @@ function NavItemRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => vo
                   className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-150 ${childActive ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"}`}
                 >
                   <span>{child.label}</span>
-                  {child.badge && <span className="text-[10px] font-semibold bg-indigo-600 text-white px-1.5 py-0.5 rounded-full">{child.badge}</span>}
+                  <span className="flex items-center gap-1.5">
+                    {child.badge && <span className="text-[10px] font-semibold bg-indigo-600 text-white px-1.5 py-0.5 rounded-full">{child.badge}</span>}
+                    <NavLinkSpinner />
+                  </span>
                 </Link>
               );
             })}
@@ -254,8 +273,9 @@ function NavItemRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => vo
     <Link href={item.href!} onClick={onNavigate}
       className={`${baseRow} ${isActive ? activeRow : idleRow}`}
     >
-      <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-indigo-500" : "text-gray-400 group-hover:text-gray-600"}`} />
+      <item.icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-indigo-500" : "text-gray-400 group-hover:text-gray-600"}`} />
       <span className="flex-1">{item.label}</span>
+      <NavLinkSpinner />
     </Link>
   );
 }
@@ -271,7 +291,7 @@ function SidebarContent({ role, userName, onNavigate }: { role: AdminRole; userN
     <div className="flex flex-col h-full bg-white border-r border-gray-100">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-100">
-        <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8 flex-shrink-0">
+        <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8 shrink-0">
           <circle cx="18" cy="18" r="16" stroke="#6366F1" strokeWidth="3.5" strokeDasharray="70 30" strokeLinecap="round" />
           <circle cx="18" cy="18" r="8" fill="#6366F1" opacity="0.2" />
         </svg>
@@ -297,7 +317,7 @@ function SidebarContent({ role, userName, onNavigate }: { role: AdminRole; userN
       {/* Footer */}
       <div className="px-4 py-4 border-t border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
             <span className="text-xs font-semibold text-indigo-600">{initials}</span>
           </div>
           <div className="flex-1 min-w-0">
@@ -339,7 +359,7 @@ export default function Sidebar({ role, userName, mobileOpen, onClose }: Sidebar
   return (
     <>
       {/* ── Desktop: fixed sidebar ──────────────────────────────────────── */}
-      <aside className="hidden lg:flex lg:w-[250px] lg:flex-col lg:fixed lg:inset-y-0 z-20">
+      <aside className="hidden lg:flex lg:w-62.5 lg:flex-col lg:fixed lg:inset-y-0 z-20">
         <SidebarContent role={role} userName={userName} />
       </aside>
 
@@ -353,7 +373,7 @@ export default function Sidebar({ role, userName, mobileOpen, onClose }: Sidebar
 
       {/* Drawer */}
       <aside
-        className={`lg:hidden fixed inset-y-0 left-0 z-40 w-[270px] flex flex-col transform transition-transform duration-300 ease-in-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`lg:hidden fixed inset-y-0 left-0 z-40 w-67.5 flex flex-col transform transition-transform duration-300 ease-in-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Close button */}
         <button

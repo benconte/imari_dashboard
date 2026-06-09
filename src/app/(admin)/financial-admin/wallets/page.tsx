@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MOCK_WALLETS } from "@/mock";
+import { useQuery } from "@tanstack/react-query";
+import { getWallets } from "@/services";
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
@@ -14,7 +15,7 @@ const STATUS_BADGE: Record<string, "success" | "warning" | "danger"> = { Active:
 
 export default function WalletsPage() {
   const [search, setSearch] = useState("");
-  const wallets = MOCK_WALLETS;
+  const { data: wallets = [] } = useQuery({ queryKey: ["wallets"], queryFn: getWallets });
   const filtered = wallets.filter((w) => w.name.toLowerCase().includes(search.toLowerCase()) || w.currency.toLowerCase().includes(search.toLowerCase()));
 
   const donutOptions: ApexOptions = {

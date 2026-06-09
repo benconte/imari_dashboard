@@ -20,9 +20,19 @@ export default function AreaChart({ options, series, height = "100%", className 
     return <div className={className} style={{ minHeight: typeof height === "number" ? height : undefined }} />;
   }
 
+  // ApexCharts queues its entry animations via recursive requestAnimationFrame
+  // calls. If the chart unmounts (e.g. navigating away) mid-animation, destroy()
+  // nulls its internal element wrappers but the queued frame still runs and
+  // throws "Cannot read properties of null (reading 'node')". Disabling
+  // animations removes that race.
+  const chartOptions = {
+    ...safeOptions,
+    chart: { ...(safeOptions.chart ?? {}), animations: { ...(safeOptions.chart?.animations ?? {}), enabled: false } },
+  };
+
   return (
     <div className={className}>
-      <Chart key={JSON.stringify({ type: "area", h: height })} options={safeOptions} series={safeSeries} type="area" height={height} />
+      <Chart key={JSON.stringify({ type: "area", h: height })} options={chartOptions} series={safeSeries} type="area" height={height} />
     </div>
   );
 }

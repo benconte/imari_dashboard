@@ -1,15 +1,17 @@
 "use client";
 
-import { MOCK_VAULTS } from "@/mock";
+import { useQuery } from "@tanstack/react-query";
+import { getVaults } from "@/services";
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
 
-const STATUS_BADGE: Record<string, "success" | "warning" | "info"> = { "Active Lock": "success", "Liquid Rebalancing": "warning", Accumulating: "info" };
+const STATUS_BADGE: Record<string, "success" | "warning" | "info" | "neutral"> = { ACTIVE: "success", LOCKED: "warning", COMPLETED: "info", CANCELLED: "neutral" };
 
 export default function GoalsPage() {
-  const vaults = MOCK_VAULTS;
+  const { data: vaults = [], isLoading } = useQuery({ queryKey: ["vaults"], queryFn: getVaults });
+  const completions = vaults.map((v) => (v.goal > 0 ? (v.balance / v.goal) * 100 : 0));
 
   return (
     <div className="space-y-6">
@@ -17,14 +19,16 @@ export default function GoalsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Goals</p><p className="text-3xl font-bold text-gray-900 mt-2">{vaults.length}</p></div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Completion</p><p className="text-3xl font-bold text-blue-600 mt-2">{Math.round(vaults.reduce((s, v) => s + (v.balance / v.goal) * 100, 0) / vaults.length)}%</p></div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">On Track</p><p className="text-3xl font-bold text-green-600 mt-2">{vaults.filter((v) => v.balance / v.goal >= 0.7).length}</p></div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Remaining</p><p className="text-3xl font-bold text-amber-600 mt-2">${((vaults.reduce((s, v) => s + v.goal - v.balance, 0)) / 1000000).toFixed(1)}M</p></div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Completion</p><p className="text-3xl font-bold text-blue-600 mt-2">{completions.length ? Math.round(completions.reduce((s, p) => s + p, 0) / completions.length) : 0}%</p></div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">On Track</p><p className="text-3xl font-bold text-green-600 mt-2">{vaults.filter((v) => v.goal > 0 && v.balance / v.goal >= 0.7).length}</p></div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Remaining</p><p className="text-3xl font-bold text-amber-600 mt-2">${(vaults.reduce((s, v) => s + Math.max(v.goal - v.balance, 0), 0) / 1000000).toFixed(1)}M</p></div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {vaults.map((v) => {
-          const pct = Math.round((v.balance / v.goal) * 100);
+        {isLoading ? (
+          <p className="text-sm text-gray-400 col-span-full text-center py-8">Loading goals...</p>
+        ) : vaults.map((v) => {
+          const pct = v.goal > 0 ? Math.round((v.balance / v.goal) * 100) : 0;
           return (
             <Card key={v.id} padded>
               <div className="flex items-center justify-between mb-3">
@@ -42,12 +46,12 @@ export default function GoalsPage() {
                 <p className="text-xs font-bold text-blue-600 mt-1">{pct}% complete</p>
               </div>
               <div className="flex justify-between py-1.5 border-t border-gray-50">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">APY</span>
-                <span className="text-xs font-bold text-green-600">{v.apy}%</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase">Owner</span>
+                <span className="text-xs text-gray-600">{v.owner}</span>
               </div>
               <div className="flex justify-between py-1.5 border-t border-gray-50">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">Category</span>
-                <span className="text-xs text-gray-600">{v.category}</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase">Currency</span>
+                <span className="text-xs text-gray-600">{v.currency}</span>
               </div>
             </Card>
           );

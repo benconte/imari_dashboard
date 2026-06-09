@@ -41,21 +41,13 @@ export default withAuth(
     // ── 1. MFA gate ────────────────────────────────────────────────────────────
     // If the admin has MFA enabled but hasn't verified it yet in this session,
     // send them to /mfa regardless of where they're going (except public paths).
-    // ── 1a. MFA setup gate (first time / not enrolled) ────────────────────
-    // If the user is logged in but hasn't enrolled MFA yet, force setup.
-    if (
-      !isPublic &&
-      token &&
-      !token.mfaEnabled &&
-      pathname !== "/mfa/setup" &&
-      pathname !== "/mfa"
-    ) {
-      const url = req.nextUrl.clone()
-      url.pathname = "/mfa/setup"
-      url.searchParams.set("adminId", String(token.id))
-      return NextResponse.redirect(url)
-    }
-
+    //
+    // NOTE: the forced "enroll on first login" gate (redirect to /mfa/setup
+    // whenever !token.mfaEnabled) is disabled — the backend has no admin MFA
+    // enrollment flow yet (MfaController only serves the regular User table
+    // with a different JWT secret/shape than admin tokens). Re-enable once
+    // an admin-specific MFA enable/confirm flow exists server-side.
+    //
     // ── 1b. MFA verification gate (MFA enabled but not verified) ───────
     if (
       !isPublic &&

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getTransactions } from "@/services";
+import { getFinancialTransactions } from "@/services";
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
@@ -16,7 +16,7 @@ export default function TransactionsPage() {
   const [riskFilter, setRiskFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  const { data: txList, isLoading } = useQuery({ queryKey: ["transactions"], queryFn: getTransactions });
+  const { data: txList, isLoading } = useQuery({ queryKey: ["financialTransactions"], queryFn: getFinancialTransactions });
 
   const filtered = (txList ?? []).filter((tx) => {
     const matchSearch = tx.id.toLowerCase().includes(search.toLowerCase()) || tx.entityName.toLowerCase().includes(search.toLowerCase());

@@ -1,6 +1,7 @@
 "use client";
 
-import { MOCK_COMPLIANCE_AUDITS } from "@/mock";
+import { useQuery } from "@tanstack/react-query";
+import { getComplianceAudits } from "@/services";
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
@@ -14,7 +15,7 @@ const CATEGORY_BADGE: Record<string, "info" | "warning" | "neutral"> = { "AML Ch
 
 export default function CompliancePage() {
   const [search, setSearch] = useState("");
-  const audits = MOCK_COMPLIANCE_AUDITS;
+  const { data: audits = [], isLoading } = useQuery({ queryKey: ["complianceAudits"], queryFn: getComplianceAudits });
   const filtered = audits.filter((a) => a.category.toLowerCase().includes(search.toLowerCase()) || a.executor.toLowerCase().includes(search.toLowerCase()) || a.details.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -46,7 +47,9 @@ export default function CompliancePage() {
               <th className="px-6 py-4 text-[10px] uppercase font-bold tracking-widest text-gray-400">Timestamp</th>
             </tr></thead>
             <tbody className="divide-y divide-gray-100">
-              {filtered.map((a) => (
+              {isLoading ? (
+                <tr><td colSpan={6} className="p-8 text-center text-gray-400">Loading audits...</td></tr>
+              ) : filtered.map((a) => (
                 <tr key={a.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4 font-mono text-xs font-bold text-blue-600">{a.id}</td>
                   <td className="px-6 py-4"><Badge variant={CATEGORY_BADGE[a.category] ?? "neutral"}>{a.category}</Badge></td>
